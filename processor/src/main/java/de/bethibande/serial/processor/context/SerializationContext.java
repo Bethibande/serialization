@@ -23,12 +23,12 @@ public record SerializationContext(
         return ClassName.get(type);
     }
 
-    public ClassName generatedType() {
-        return TypeHelper.getDTOName(rawType());
+    public ClassName serializerType() {
+        return TypeHelper.adaptTypeName(rawType(), "Serializer");
     }
 
-    public ClassName getSnapshotType() {
-        return TypeHelper.getSnapshotName(rawType());
+    public ClassName deserializerType() {
+        return TypeHelper.adaptTypeName(rawType(), "Deserializer");
     }
 
 }

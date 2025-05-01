@@ -2,16 +2,9 @@ package de.bethibande.serial;
 
 public interface Writer {
 
-    /**
-     * Sets a marker at the beginning of the current write operation and reserves four bytes for the length signature.
-     */
-    void markStart();
+    long position();
 
-    /**
-     * Calculates the number of written bytes since the last call to {@link #markStart()},
-     * not including the 4 reserved bytes, and writes it at the position recorded by {@link #markStart()}.
-     */
-    void markEnd();
+    void skip(final int bytes);
 
     void write(final byte[] value);
 

@@ -9,8 +9,48 @@ import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import java.util.Set;
 
 public class TypeHelper {
+
+    private static final Set<String> NOT_NULL_ANNOTATIONS = Set.of(
+            "notnull",
+            "notnullable",
+            "nonnull",
+            "nonnullable"
+    );
+
+    public static Element asElement(final Class<?> clazz) {
+        return SerializationProcessor.ELEMENTS.getTypeElement(clazz.getCanonicalName());
+    }
+
+    public static TypeMirror asType(final Class<?> clazz) {
+        return asElement(clazz).asType();
+    }
+
+    public static boolean isCharSequence(final TypeMirror type) {
+        return SerializationProcessor.TYPES.isSubtype(type, asType(CharSequence.class));
+    }
+
+    public static boolean isAssignable(final TypeMirror superType, final TypeMirror to) {
+        return SerializationProcessor.TYPES.isAssignable(superType, to);
+    }
+
+    public static boolean hasNotNullAnnotation(final TypeMirror type) {
+        return type.getAnnotationMirrors()
+                .stream()
+                .map(it -> it.getAnnotationType().asElement().getSimpleName().toString())
+                .map(String::toLowerCase)
+                .anyMatch(NOT_NULL_ANNOTATIONS::contains);
+    }
+
+    public static boolean isNullable(final TypeMirror type) {
+        return !isNotNull(type);
+    }
+
+    public static boolean isNotNull(final TypeMirror type) {
+        return type.getKind().isPrimitive() || hasNotNullAnnotation(type);
+    }
 
     /**
      * Resolves the {@link TypeMirror} representation of a given {@link AnnotatedConstruct}.
@@ -30,12 +70,8 @@ public class TypeHelper {
         throw new IllegalArgumentException("Unknown construct type: " + construct.getClass().getName());
     }
 
-    public static ClassName getDTOName(final ClassName rawType) {
-        return ClassName.get(rawType.packageName(), rawType.simpleName() + "DTO");
-    }
-
-    public static ClassName getSnapshotName(final ClassName rawType) {
-        return ClassName.get(rawType.packageName(), rawType.simpleName() + "Snapshot");
+    public static ClassName adaptTypeName(final ClassName rawType, final String suffix) {
+        return ClassName.get(rawType.packageName(), rawType.simpleName() + suffix);
     }
 
     public static String toFieldName(final String name) {
@@ -49,6 +85,7 @@ public class TypeHelper {
     public static String getFieldName(final Element element) {
         final String name = element.getSimpleName().toString();
 
+        if (name.startsWith("with")) return toFieldName(name.substring(4));
         if (name.startsWith("is")) return toFieldName(name.substring(2));
         if (name.startsWith("get")) return toFieldName(name.substring(3));
         if (name.startsWith("set")) return toFieldName(name.substring(3));
@@ -56,11 +93,15 @@ public class TypeHelper {
     }
 
     public static boolean isFluentSetter(final ExecutableElement element) {
-        return isSetter(element) && element.getReturnType().getKind() != TypeKind.VOID;
+        return element.getParameters().size() == 1 && element.getReturnType().getKind() != TypeKind.VOID;
     }
 
     public static boolean isSetter(final ExecutableElement element) {
         return element.getParameters().size() == 1 && element.getReturnType().getKind() == TypeKind.VOID;
+    }
+
+    public static boolean isGetter(final ExecutableElement element) {
+        return element.getParameters().isEmpty() && element.getReturnType().getKind() != TypeKind.VOID;
     }
 
 }

@@ -3,12 +3,12 @@ package de.bethibande.serial.processor.generator;
 import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.TypeName;
 import de.bethibande.serial.processor.TypeHelper;
+import de.bethibande.serial.processor.serializer.FieldBasedObjectTransformer;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class FieldInfo {
 
@@ -19,11 +19,18 @@ public class FieldInfo {
     private ExecutableElement setter;
     private ExecutableElement fluentSetter;
 
-    private final Map<MethodType, MethodSpec> generatedMethods = new HashMap<>();
+    private boolean nullable = false;
+
+    private FieldBasedObjectTransformer transformer;
+    private Map<MethodType, MethodSpec> generatedMethods = new HashMap<>();
 
     public FieldInfo(final String fieldName, final TypeMirror type) {
         this.fieldName = fieldName;
         this.type = type;
+    }
+
+    public boolean isNullable() {
+        return nullable;
     }
 
     public String getFieldName() {
@@ -74,6 +81,22 @@ public class FieldInfo {
         return "with" + TypeHelper.capitalizeName(fieldName);
     }
 
+    public FieldBasedObjectTransformer getTransformer() {
+        return transformer;
+    }
+
+    public MethodSpec getGeneratedMethod(final MethodType type) {
+        return generatedMethods.get(type);
+    }
+
+    public void setTransformer(final FieldBasedObjectTransformer transformer) {
+        this.transformer = transformer;
+    }
+
+    public void setNullable(final boolean nullable) {
+        this.nullable = nullable;
+    }
+
     public void setGetter(final ExecutableElement getter) {
         this.getter = getter;
     }
@@ -86,12 +109,8 @@ public class FieldInfo {
         this.fluentSetter = fluentSetter;
     }
 
-    public void setGeneratedMethod(final MethodType type, final MethodSpec method) {
+    public void addGeneratedMethod(final MethodType type, final MethodSpec method) {
         this.generatedMethods.put(type, method);
-    }
-
-    public Optional<MethodSpec> getGeneratedMethod(final MethodType type) {
-        return Optional.ofNullable(this.generatedMethods.get(type));
     }
 
 }

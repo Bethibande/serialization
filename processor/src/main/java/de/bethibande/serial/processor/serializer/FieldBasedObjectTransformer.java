@@ -1,7 +1,9 @@
 package de.bethibande.serial.processor.serializer;
 
-import com.palantir.javapoet.CodeBlock;
+import com.palantir.javapoet.TypeSpec;
 import de.bethibande.serial.processor.TypeHelper;
+import de.bethibande.serial.processor.context.SerializationContext;
+import de.bethibande.serial.processor.generator.FieldInfo;
 
 import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.Element;
@@ -9,8 +11,9 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
+import java.util.Collection;
 
-public interface TypeSerializer {
+public interface FieldBasedObjectTransformer {
 
     /**
      * Converts the provided {@link AnnotatedConstruct} into a {@link TypeMirror}.
@@ -31,12 +34,13 @@ public interface TypeSerializer {
         throw new IllegalArgumentException("Unknown construct type: " + construct.getClass().getName());
     }
 
-    boolean isApplicable(final AnnotatedConstruct construct, final ElementSerializer serializer);
+    boolean isApplicable(final FieldInfo field, final ElementSerializer serializer);
 
-    SizeCalculator size(final AnnotatedConstruct construct, final ElementSerializer serializer);
+    void transformSerializer(final TypeSpec.Builder builder,
+                             final Collection<FieldInfo> fields,
+                             final SerializationContext ctx);
 
-    CodeBlock write(final AnnotatedConstruct construct, final ElementSerializer serializer);
-
-    CodeBlock read(final AnnotatedConstruct construct, final ElementSerializer serializer);
-
+    void transformDeserializer(final TypeSpec.Builder builder,
+                               final Collection<FieldInfo> fields,
+                               final SerializationContext ctx);
 }

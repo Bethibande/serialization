@@ -1,26 +1,39 @@
 package de.bethibande.serial.processor.serializer.types;
 
 import com.google.auto.service.AutoService;
-import com.palantir.javapoet.CodeBlock;
-import de.bethibande.serial.processor.TypeHelper;
+import com.palantir.javapoet.MethodSpec;
+import de.bethibande.serial.processor.context.SerializationContext;
+import de.bethibande.serial.processor.generator.FieldInfo;
+import de.bethibande.serial.processor.serializer.AbstractSingleMethodGenerator;
 import de.bethibande.serial.processor.serializer.ElementSerializer;
+import de.bethibande.serial.processor.serializer.FieldBasedObjectTransformer;
 import de.bethibande.serial.processor.serializer.Operations;
-import de.bethibande.serial.processor.serializer.SizeCalculator;
-import de.bethibande.serial.processor.serializer.TypeSerializer;
 
-import javax.lang.model.AnnotatedConstruct;
-import javax.lang.model.element.Element;
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
 
-@AutoService(TypeSerializer.class)
-public class PrimitiveTypes implements TypeSerializer {
+@AutoService(FieldBasedObjectTransformer.class)
+public class PrimitiveTypes extends AbstractSingleMethodGenerator {
 
     @Override
-    public boolean isApplicable(final AnnotatedConstruct construct, final ElementSerializer serializer) {
-        return asTypeMirror(construct)
+    public boolean isApplicable(final FieldInfo field, final ElementSerializer serializer) {
+        return field.getType()
                 .getKind()
                 .isPrimitive();
+    }
+
+    @Override
+    protected MethodSpec generateSerializerMethod(final FieldInfo field, final SerializationContext ctx) {
+        return defaultWriteMethod(field, ctx)
+                .addStatement(writeOperation(field.getType().getKind()), "target", field.getFieldName())
+                .addStatement("return this")
+                .build();
+    }
+
+    @Override
+    protected MethodSpec generateDeserializerMethod(final FieldInfo field, final SerializationContext ctx) {
+        return defaultReadMethod(field, ctx)
+                .addStatement(readOperation(field.getType().getKind()), "reader")
+                .build();
     }
 
     private int size(final TypeKind kind) {
@@ -31,14 +44,6 @@ public class PrimitiveTypes implements TypeSerializer {
             case LONG, DOUBLE -> 8;
             default -> throw new IllegalArgumentException("Unknown primitive type: " + kind);
         };
-    }
-
-    @Override
-    public SizeCalculator size(final AnnotatedConstruct construct, final ElementSerializer serializer) {
-        final TypeMirror typeMirror = asTypeMirror(construct);
-        final int size = size(typeMirror.getKind());
-
-        return SizeCalculator.ofStaticSize(size);
     }
 
     private String writeOperation(final TypeKind kind) {
@@ -67,29 +72,5 @@ public class PrimitiveTypes implements TypeSerializer {
             case CHAR -> Operations.READ_CHAR;
             default -> throw new IllegalArgumentException("Unknown primitive type: " + kind);
         };
-    }
-
-    @Override
-    public CodeBlock write(final AnnotatedConstruct construct, final ElementSerializer serializer) {
-        final Element element = asElement(construct);
-        final TypeMirror typeMirror = asTypeMirror(construct);
-        final String operation = writeOperation(typeMirror.getKind());
-
-        return CodeBlock.builder()
-                .addStatement(operation, TypeHelper.getFieldName(element))
-                .build();
-    }
-
-    @Override
-    public CodeBlock read(final AnnotatedConstruct construct, final ElementSerializer serializer) {
-        final Element element = asElement(construct);
-        final TypeMirror typeMirror = asTypeMirror(construct);
-        final String operation = readOperation(typeMirror.getKind());
-        final String fieldName = TypeHelper.getFieldName(element);
-
-        return CodeBlock.builder()
-                .addStatement(operation, typeMirror, fieldName)
-                .addStatement("this.$L = $L", fieldName, fieldName)
-                .build();
     }
 }

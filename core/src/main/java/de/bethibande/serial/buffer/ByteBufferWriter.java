@@ -1,85 +1,89 @@
-package de.bethibande.serial.netty;
+package de.bethibande.serial.buffer;
 
 import de.bethibande.serial.Writer;
-import io.netty.buffer.ByteBuf;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-public class NettyWriter extends AbstractNettySerial implements Writer {
+public class ByteBufferWriter implements Writer {
 
-    public NettyWriter() {
+    private ByteBuffer buffer;
+
+    public ByteBufferWriter() {
     }
 
-    public NettyWriter(final ByteBuf buffer) {
-        super(buffer);
+    public ByteBufferWriter(final ByteBuffer buffer) {
+        this.buffer = buffer;
+    }
+
+    public void setBuffer(final ByteBuffer buffer) {
+        this.buffer = buffer;
     }
 
     @Override
     public long position() {
-        return buffer.writerIndex();
+        return buffer.position();
     }
 
     @Override
     public void skip(final int bytes) {
-        buffer.skipBytes(bytes);
+        buffer.position(buffer.position() + bytes);
     }
 
     @Override
     public void write(final byte[] value) {
-        buffer.writeBytes(value);
+        buffer.put(value);
     }
 
     @Override
     public void write(final byte[] value, final int offset, final int length) {
-        buffer.writeBytes(value, offset, length);
+        buffer.put(value, offset, length);
     }
 
     @Override
     public void writeByte(final byte value) {
-        buffer.writeByte(value);
+        buffer.put(value);
     }
 
     @Override
     public void writeShort(final short value) {
-        buffer.writeShort(value);
+        buffer.putShort(value);
     }
 
     @Override
     public void writeInt(final int value) {
-        buffer.writeInt(value);
+        buffer.putInt(value);
     }
 
     @Override
     public void writeLong(final long value) {
-        buffer.writeLong(value);
+        buffer.putLong(value);
     }
 
     @Override
     public void writeFloat(final float value) {
-        buffer.writeFloat(value);
+        buffer.putFloat(value);
     }
 
     @Override
     public void writeDouble(final double value) {
-        buffer.writeDouble(value);
+        buffer.putDouble(value);
     }
 
     @Override
     public void writeBoolean(final boolean value) {
-        buffer.writeBoolean(value);
+        buffer.put((byte) (value ? 1 : 0));
     }
 
     @Override
     public void writeChar(final char value) {
-        buffer.writeChar(value);
+        buffer.putChar(value);
     }
 
     @Override
     public void writeString(final String value) {
-        final int index = buffer.writerIndex();
-        buffer.writeInt(0);
-
-        final int written = buffer.writeCharSequence(value, StandardCharsets.UTF_8);
-        buffer.setInt(index, written);
+        final byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+        buffer.putInt(bytes.length);
+        buffer.put(bytes);
     }
 }

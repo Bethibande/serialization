@@ -2,6 +2,10 @@ package de.bethibande.serial;
 
 public interface Reader {
 
+    long position();
+
+    long available();
+
     void read(final byte[] value);
 
     void read(final byte[] value, final int offset, final int length);

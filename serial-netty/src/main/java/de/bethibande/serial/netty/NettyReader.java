@@ -15,6 +15,16 @@ public class NettyReader extends AbstractNettySerial implements Reader {
     }
 
     @Override
+    public long position() {
+        return buffer.readerIndex();
+    }
+
+    @Override
+    public long available() {
+        return buffer.readableBytes();
+    }
+
+    @Override
     public void read(final byte[] value) {
         buffer.readBytes(value);
     }

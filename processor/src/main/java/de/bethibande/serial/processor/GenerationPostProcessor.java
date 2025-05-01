@@ -5,6 +5,6 @@ import de.bethibande.serial.processor.context.SerializationContext;
 
 public interface GenerationPostProcessor {
 
-    TypeSpec.Builder postProcess(final TypeSpec.Builder builder, final SerializationContext context);
+    void postProcess(final TypeSpec.Builder builder, final SerializationContext context);
 
 }
