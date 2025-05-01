@@ -1,6 +1,7 @@
 package de.bethibande.serial.processor.serializer.types;
 
 import com.google.auto.service.AutoService;
+import com.palantir.javapoet.CodeBlock;
 import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.TypeSpec;
 import de.bethibande.serial.processor.attributes.AttributeKey;
@@ -11,7 +12,6 @@ import de.bethibande.serial.processor.serializer.ElementSerializer;
 import de.bethibande.serial.processor.serializer.FieldBasedObjectTransformer;
 
 import java.util.Collection;
-import java.util.List;
 
 @AutoService(FieldBasedObjectTransformer.class)
 public class NullableFieldTypes implements FieldBasedObjectTransformer {
@@ -31,16 +31,24 @@ public class NullableFieldTypes implements FieldBasedObjectTransformer {
         return true;
     }
 
-    private MethodSpec embedTransformer(final FieldInfo field,
-                                        final MethodType methodType,
-                                        final FieldBasedObjectTransformer transformer,
-                                        final SerializationContext ctx) {
-        switch (methodType) {
-            case READ -> transformer.transformDeserializer(TypeSpec.classBuilder("Temp"), List.of(field), ctx);
-            case WRITE -> transformer.transformSerializer(TypeSpec.classBuilder("Temp"), List.of(field), ctx);
-        }
+    private MethodSpec embedSerializer(final FieldInfo field,
+                                       final FieldBasedObjectTransformer transformer,
+                                       final SerializationContext ctx) {
+        return defaultWriteMethod(field, field.getFieldName() + "NotNull", ctx)
+                .addCode(transformer.createSerializerCode(field, ctx))
+                .build();
+    }
 
-        return field.getGeneratedMethod(methodType);
+    @Override
+    public CodeBlock createSerializerCode(final FieldInfo field, final SerializationContext ctx) {
+        return CodeBlock.builder()
+                .beginControlFlow("if ($L != null)", field.getFieldName())
+                .addStatement("target.writeBoolean(true)")
+                .addStatement("return $L($L)", field.getFieldName() + "NotNull", field.getFieldName())
+                .endControlFlow()
+                .addStatement("target.writeBoolean(false)")
+                .addStatement("return this")
+                .build();
     }
 
     @Override
@@ -49,25 +57,31 @@ public class NullableFieldTypes implements FieldBasedObjectTransformer {
                                     final SerializationContext ctx) {
         for (final FieldInfo field : fields) {
             final FieldBasedObjectTransformer childTransformer = field.get(CHILD_TRANSFORMER).orElseThrow();
-            final MethodSpec childSpec = embedTransformer(field, MethodType.WRITE, childTransformer, ctx)
-                    .toBuilder()
-                    .setName(field.getFieldName() + "NotNull")
-                    .returns(ctx.serializerType())
-                    .build();
-
-            final MethodSpec method = defaultWriteMethod(field, ctx)
-                    .beginControlFlow("if ($L != null)", field.getFieldName())
-                    .addStatement("target.writeBoolean(true)")
-                    .addStatement("return $L($L)", childSpec.name(), field.getFieldName())
-                    .endControlFlow()
-                    .addStatement("target.writeBoolean(false)")
-                    .addStatement("return this")
-                    .build();
+            final MethodSpec childSpec = embedSerializer(field, childTransformer, ctx);
+            final MethodSpec method = createSerializerMethod(field, ctx);
 
             field.addGeneratedMethod(MethodType.WRITE, method);
             builder.addMethod(method);
             builder.addMethod(childSpec);
         }
+    }
+
+    private MethodSpec embedDeserializer(final FieldInfo field,
+                                         final FieldBasedObjectTransformer transformer,
+                                         final SerializationContext ctx) {
+        return defaultReadMethod(field, field.getFieldName() + "NotNull", ctx)
+                .addCode(transformer.createDeserializerCode(field, ctx))
+                .build();
+    }
+
+    @Override
+    public CodeBlock createDeserializerCode(final FieldInfo field, final SerializationContext ctx) {
+        return CodeBlock.builder()
+                .beginControlFlow("if (reader.readBoolean())")
+                .addStatement("return $L()", field.getFieldName() + "NotNull")
+                .endControlFlow()
+                .addStatement("return null")
+                .build();
     }
 
     @Override
@@ -76,20 +90,10 @@ public class NullableFieldTypes implements FieldBasedObjectTransformer {
                                       final SerializationContext ctx) {
         for (final FieldInfo field : fields) {
             final FieldBasedObjectTransformer childTransformer = field.get(CHILD_TRANSFORMER).orElseThrow();
-            final MethodSpec childSpec = embedTransformer(field, MethodType.READ, childTransformer, ctx)
-                    .toBuilder()
-                    .setName(field.getFieldName() + "NotNull")
-                    .returns(field.getTypeName())
-                    .build();
+            final MethodSpec childSpec = embedDeserializer(field, childTransformer, ctx);
+            final MethodSpec method = createDeserializerMethod(field, ctx);
 
-            final MethodSpec method = defaultReadMethod(field, ctx)
-                    .beginControlFlow("if (reader.readBoolean())")
-                    .addStatement("return $L()", childSpec.name())
-                    .endControlFlow()
-                    .addStatement("return null")
-                    .build();
-
-            field.addGeneratedMethod(MethodType.WRITE, method);
+            field.addGeneratedMethod(MethodType.READ, method);
             builder.addMethod(method);
             builder.addMethod(childSpec);
         }

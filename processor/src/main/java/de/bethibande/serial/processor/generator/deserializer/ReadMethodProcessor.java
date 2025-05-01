@@ -4,7 +4,6 @@ import com.palantir.javapoet.CodeBlock;
 import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.ParameterSpec;
 import com.palantir.javapoet.TypeSpec;
-import de.bethibande.serial.Reader;
 import de.bethibande.serial.processor.GenerationPostProcessor;
 import de.bethibande.serial.processor.context.SerializationContext;
 import de.bethibande.serial.processor.generator.FieldInfo;

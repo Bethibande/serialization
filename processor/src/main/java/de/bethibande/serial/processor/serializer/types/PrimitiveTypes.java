@@ -1,10 +1,9 @@
 package de.bethibande.serial.processor.serializer.types;
 
 import com.google.auto.service.AutoService;
-import com.palantir.javapoet.MethodSpec;
+import com.palantir.javapoet.CodeBlock;
 import de.bethibande.serial.processor.context.SerializationContext;
 import de.bethibande.serial.processor.generator.FieldInfo;
-import de.bethibande.serial.processor.serializer.AbstractSingleMethodGenerator;
 import de.bethibande.serial.processor.serializer.ElementSerializer;
 import de.bethibande.serial.processor.serializer.FieldBasedObjectTransformer;
 import de.bethibande.serial.processor.serializer.Operations;
@@ -12,7 +11,7 @@ import de.bethibande.serial.processor.serializer.Operations;
 import javax.lang.model.type.TypeKind;
 
 @AutoService(FieldBasedObjectTransformer.class)
-public class PrimitiveTypes extends AbstractSingleMethodGenerator {
+public class PrimitiveTypes implements FieldBasedObjectTransformer {
 
     @Override
     public boolean isApplicable(final FieldInfo field, final ElementSerializer serializer) {
@@ -22,16 +21,16 @@ public class PrimitiveTypes extends AbstractSingleMethodGenerator {
     }
 
     @Override
-    protected MethodSpec generateSerializerMethod(final FieldInfo field, final SerializationContext ctx) {
-        return defaultWriteMethod(field, ctx)
+    public CodeBlock createSerializerCode(final FieldInfo field, final SerializationContext ctx) {
+        return CodeBlock.builder()
                 .addStatement(writeOperation(field.getType().getKind()), "target", field.getFieldName())
                 .addStatement("return this")
                 .build();
     }
 
     @Override
-    protected MethodSpec generateDeserializerMethod(final FieldInfo field, final SerializationContext ctx) {
-        return defaultReadMethod(field, ctx)
+    public CodeBlock createDeserializerCode(final FieldInfo field, final SerializationContext ctx) {
+        return CodeBlock.builder()
                 .addStatement(readOperation(field.getType().getKind()), "reader")
                 .build();
     }
