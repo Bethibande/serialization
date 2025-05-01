@@ -22,7 +22,7 @@ public class Main {
         serializer.bind(writer)
                 .write(test.withSomeNumber(234))
                 .write(test.withSomeNumber(123))
-                .write(test.withSomeNumber(456))
+                .write(test.withSomeNumber(456).withSomeOtherString("def"))
                 .write(test.withSomeNumber(789));
 
         final TestDTO dtoA = deserializer.bind(reader).read(new TestDTO());

@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @State(Scope.Thread)
 @Fork(1)
-@Threads(32)
+@Threads(Threads.MAX)
 public class Bench {
 
     private final TestDTO dto = new TestDTO().withSomeNumber(234).withSomeString("abc");
@@ -38,8 +38,8 @@ public class Bench {
 
     @Setup
     public void setup() {
-        nettyBuffer = ByteBufAllocator.DEFAULT.directBuffer(12);
-        javaBuffer = ByteBuffer.allocateDirect(12);
+        nettyBuffer = ByteBufAllocator.DEFAULT.directBuffer(32);
+        javaBuffer = ByteBuffer.allocateDirect(32);
 
         nettyWriter = new NettyWriter(nettyBuffer);
         nettyReader = new NettyReader(nettyBuffer);

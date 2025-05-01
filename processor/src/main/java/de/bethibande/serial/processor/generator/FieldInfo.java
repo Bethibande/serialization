@@ -3,17 +3,23 @@ package de.bethibande.serial.processor.generator;
 import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.TypeName;
 import de.bethibande.serial.processor.TypeHelper;
+import de.bethibande.serial.processor.attributes.AttributeKey;
+import de.bethibande.serial.processor.attributes.AttributeMap;
+import de.bethibande.serial.processor.attributes.HasAttributes;
 import de.bethibande.serial.processor.serializer.FieldBasedObjectTransformer;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
-public class FieldInfo {
+public class FieldInfo implements HasAttributes {
 
     private final String fieldName;
     private final TypeMirror type;
+
+    private final AttributeMap attributes = new AttributeMap();
 
     private ExecutableElement getter;
     private ExecutableElement setter;
@@ -113,4 +119,13 @@ public class FieldInfo {
         this.generatedMethods.put(type, method);
     }
 
+    @Override
+    public <T> void set(final AttributeKey<T> key, final T value) {
+        attributes.set(key, value);
+    }
+
+    @Override
+    public <T> Optional<T> get(final AttributeKey<T> key) {
+        return attributes.get(key);
+    }
 }

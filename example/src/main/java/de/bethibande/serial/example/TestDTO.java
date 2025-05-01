@@ -15,6 +15,7 @@ public class TestDTO {
     private int someNumber;
     private boolean someBoolean;
     private @NotNull String someString;
+    private String someOtherString;
 
     public TestDTO withSomeNumber(final int number) {
         this.someNumber = number;
@@ -23,6 +24,11 @@ public class TestDTO {
 
     public TestDTO withSomeString(final String string) {
         this.someString = string;
+        return this;
+    }
+
+    public TestDTO withSomeOtherString(final String string) {
+        this.someOtherString = string;
         return this;
     }
 

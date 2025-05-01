@@ -1,19 +1,33 @@
 package de.bethibande.serial.processor.serializer;
 
+import com.palantir.javapoet.MethodSpec;
+import com.palantir.javapoet.ParameterSpec;
 import com.palantir.javapoet.TypeSpec;
 import de.bethibande.serial.processor.TypeHelper;
 import de.bethibande.serial.processor.context.SerializationContext;
 import de.bethibande.serial.processor.generator.FieldInfo;
 
 import javax.lang.model.AnnotatedConstruct;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.RecordComponentElement;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
 import java.util.Collection;
 
 public interface FieldBasedObjectTransformer {
+
+    default MethodSpec.Builder defaultWriteMethod(final FieldInfo field, final SerializationContext ctx) {
+        return MethodSpec.methodBuilder(field.getFieldName())
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ParameterSpec.builder(field.getTypeName(), field.getFieldName())
+                        .addModifiers(Modifier.FINAL)
+                        .build())
+                .returns(ctx.serializerType());
+    }
+
+    default MethodSpec.Builder defaultReadMethod(final FieldInfo field, final SerializationContext ctx) {
+        return MethodSpec.methodBuilder(field.getFieldName())
+                .addModifiers(Modifier.PUBLIC)
+                .returns(field.getTypeName());
+    }
 
     /**
      * Converts the provided {@link AnnotatedConstruct} into a {@link TypeMirror}.
