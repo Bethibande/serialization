@@ -8,6 +8,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.util.Set;
@@ -21,8 +22,38 @@ public class TypeHelper {
             "nonnullable"
     );
 
+    private static final Set<String> BOXED_PRIMITIVE_TYPES = Set.of(
+            "java.lang.Byte",
+            "java.lang.Short",
+            "java.lang.Integer",
+            "java.lang.Long",
+            "java.lang.Float",
+            "java.lang.Double",
+            "java.lang.Boolean",
+            "java.lang.Character"
+    );
+
+    public static boolean isSuppressed(final AnnotatedConstruct construct, final String warning) {
+        final SuppressWarnings suppressWarnings = construct.getAnnotation(SuppressWarnings.class);
+        if (suppressWarnings == null) return false;
+
+        return Set.of(suppressWarnings.value()).contains(warning);
+    }
+
+    public static PrimitiveType unbox(final TypeMirror type) {
+        return SerializationProcessor.TYPES.unboxedType(type);
+    }
+
+    public static String rawType(final TypeMirror type) {
+        return TypeName.get(type).withoutAnnotations().toString();
+    }
+
+    public static boolean isBoxedPrimitive(final TypeMirror type) {
+        return BOXED_PRIMITIVE_TYPES.contains(rawType(type));
+    }
+
     public static TypeElement asElement(final TypeMirror type) {
-        return SerializationProcessor.ELEMENTS.getTypeElement(TypeName.get(type).withoutAnnotations().toString());
+        return SerializationProcessor.ELEMENTS.getTypeElement(rawType(type));
     }
 
     public static TypeElement asElement(final Class<?> clazz) {
