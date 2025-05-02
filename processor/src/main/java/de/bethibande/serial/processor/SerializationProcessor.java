@@ -101,7 +101,7 @@ public class SerializationProcessor extends AbstractProcessor {
         final String name = TypeHelper.toFieldName(field.getSimpleName().toString());
         final TypeMirror type = field.asType();
 
-        final FieldInfo fieldInfo = new FieldInfo(name, type);
+        final FieldInfo fieldInfo = new FieldInfo(parent, name, type);
         fieldInfo.setNullable(TypeHelper.isNullable(type));
         final FieldBasedObjectTransformer transformer = serializer.getFieldTransformer(fieldInfo).orElse(null);
         if (transformer == null) {

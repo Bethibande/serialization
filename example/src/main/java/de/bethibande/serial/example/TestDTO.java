@@ -16,6 +16,7 @@ public class TestDTO {
     private boolean someBoolean;
     private @NotNull String someString;
     private String someOtherString;
+    private @NotNull MyEnum someEnum;
 
     public TestDTO withSomeNumber(final int number) {
         this.someNumber = number;

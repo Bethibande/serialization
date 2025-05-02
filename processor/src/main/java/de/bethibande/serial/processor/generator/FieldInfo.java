@@ -9,6 +9,7 @@ import de.bethibande.serial.processor.attributes.HasAttributes;
 import de.bethibande.serial.processor.serializer.FieldBasedObjectTransformer;
 
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,8 +17,10 @@ import java.util.Optional;
 
 public class FieldInfo implements HasAttributes {
 
+    private final TypeElement parent;
     private final String fieldName;
     private final TypeMirror type;
+    private final TypeElement typeElement;
 
     private final AttributeMap attributes = new AttributeMap();
 
@@ -30,9 +33,20 @@ public class FieldInfo implements HasAttributes {
     private FieldBasedObjectTransformer transformer;
     private Map<MethodType, MethodSpec> generatedMethods = new HashMap<>();
 
-    public FieldInfo(final String fieldName, final TypeMirror type) {
+    public FieldInfo(final TypeElement parent, final String fieldName, final TypeMirror type) {
+        this.parent = parent;
         this.fieldName = fieldName;
         this.type = type;
+        this.typeElement = TypeHelper.asElement(type);
+    }
+
+
+    public TypeElement getParent() {
+        return parent;
+    }
+
+    public TypeElement getTypeElement() {
+        return typeElement;
     }
 
     public boolean isNullable() {

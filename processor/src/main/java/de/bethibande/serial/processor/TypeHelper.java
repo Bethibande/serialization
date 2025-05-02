@@ -1,6 +1,7 @@
 package de.bethibande.serial.processor;
 
 import com.palantir.javapoet.ClassName;
+import com.palantir.javapoet.TypeName;
 
 import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.Element;
@@ -20,7 +21,11 @@ public class TypeHelper {
             "nonnullable"
     );
 
-    public static Element asElement(final Class<?> clazz) {
+    public static TypeElement asElement(final TypeMirror type) {
+        return SerializationProcessor.ELEMENTS.getTypeElement(TypeName.get(type).withoutAnnotations().toString());
+    }
+
+    public static TypeElement asElement(final Class<?> clazz) {
         return SerializationProcessor.ELEMENTS.getTypeElement(clazz.getCanonicalName());
     }
 
