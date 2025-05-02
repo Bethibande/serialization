@@ -15,33 +15,25 @@ public class PrimitiveTypes implements FieldBasedObjectTransformer {
 
     @Override
     public boolean isApplicable(final FieldInfo field, final ElementSerializer serializer) {
-        return field.getType()
-                .getKind()
-                .isPrimitive();
+        return field.getType().getKind().isPrimitive();
+    }
+
+    protected TypeKind toTypeKind(final FieldInfo field) {
+        return field.getType().getKind();
     }
 
     @Override
-    public CodeBlock createSerializerCode(final FieldInfo field, final SerializationContext ctx) {
+    public CodeBlock createSerializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
-                .addStatement(Operations.writeOperation(field.getType().getKind()), "target", field.getFieldName())
+                .addStatement(Operations.writeOperation(toTypeKind(field)), "writer", "value")
                 .addStatement("return this")
                 .build();
     }
 
     @Override
-    public CodeBlock createDeserializerCode(final FieldInfo field, final SerializationContext ctx) {
+    public CodeBlock createDeserializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
-                .addStatement(Operations.readOperation(field.getType().getKind()), "reader")
+                .addStatement(Operations.readOperation(toTypeKind(field)), "reader")
                 .build();
-    }
-
-    private int size(final TypeKind kind) {
-        return switch (kind) {
-            case BYTE, BOOLEAN -> 1;
-            case SHORT, CHAR -> 2;
-            case INT, FLOAT -> 4;
-            case LONG, DOUBLE -> 8;
-            default -> throw new IllegalArgumentException("Unknown primitive type: " + kind);
-        };
     }
 }

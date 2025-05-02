@@ -16,8 +16,16 @@ public class TestDTO {
     private boolean someBoolean;
     private @NotNull String someString;
     private String someOtherString;
+    @SuppressWarnings("boxedtypes")
+    private Integer someInteger;
     private MyEnum someEnum;
-    private String[] someStringArray;
+    @Getter
+    private @NotNull String[] someStringArray;
+
+    // We need to prevent the default lombok setter here, since lombok handles annotations incorrectly adding a null-check that shouldn't be there.
+    public void setSomeStringArray(final String[] someStringArray) {
+        this.someStringArray = someStringArray;
+    }
 
     public TestDTO withSomeNumber(final int number) {
         this.someNumber = number;

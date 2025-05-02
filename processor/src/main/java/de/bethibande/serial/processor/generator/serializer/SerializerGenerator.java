@@ -10,6 +10,7 @@ import de.bethibande.serial.processor.Generator;
 import de.bethibande.serial.processor.context.SerializationContext;
 import de.bethibande.serial.processor.generator.AbstractGenerator;
 import de.bethibande.serial.processor.generator.FieldInfo;
+import de.bethibande.serial.processor.generator.MethodType;
 import de.bethibande.serial.processor.serializer.FieldBasedObjectTransformer;
 
 import java.util.List;
@@ -37,11 +38,10 @@ public class SerializerGenerator extends AbstractGenerator {
         final TypeSpec.Builder builder = TypeSpec.classBuilder(context.serializerType())
                 .superclass(superType);
 
-        final Map<FieldBasedObjectTransformer, List<FieldInfo>> transformers = context.fields()
-                .stream()
-                .collect(Collectors.groupingBy(FieldInfo::getTransformer));
-
-        transformers.forEach((transformer, fields) -> transformer.transformSerializer(builder, fields, context));
+        for (final FieldInfo field : context.fields()) {
+            field.getTransformer()
+                    .transformType(builder, field, MethodType.SERIALIZE, context);
+        }
 
         return builder;
     }

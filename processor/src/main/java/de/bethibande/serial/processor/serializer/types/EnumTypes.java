@@ -15,22 +15,22 @@ public class EnumTypes implements FieldBasedObjectTransformer {
     @Override
     public boolean isApplicable(final FieldInfo field, final ElementSerializer serializer) {
         return !field.isNullable()
-                && field.getTypeElement() != null // Primitive types such as int don't have a type element
+                && field.getTypeElement() != null
                 && field.getTypeElement().getKind() == ElementKind.ENUM;
     }
 
     @Override
-    public CodeBlock createSerializerCode(final FieldInfo field, final SerializationContext ctx) {
+    public CodeBlock createSerializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
-                .addStatement("$L.writeInt($L.ordinal())", "target", field.getFieldName())
+                .addStatement("$L.writeInt($L.ordinal())", "writer", "value")
                 .addStatement("return this")
                 .build();
     }
 
     @Override
-    public CodeBlock createDeserializerCode(final FieldInfo field, final SerializationContext ctx) {
+    public CodeBlock createDeserializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
-                .addStatement("return $T.values()[reader.readInt()]", field.getTypeElement())
+                .addStatement("return $T.values()[$L.readInt()]", field.getType(), "reader")
                 .build();
     }
 }

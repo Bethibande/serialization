@@ -17,7 +17,7 @@ public class ReadMethodProcessor implements GenerationPostProcessor {
     public void postProcess(final TypeSpec.Builder builder, final SerializationContext context) {
         final CodeBlock.Builder code = CodeBlock.builder();
         for (final FieldInfo field : context.fields()) {
-            code.addStatement("$L.$L($L())", "target", field.getSetterName(), field.getGeneratedMethod(MethodType.READ).name());
+            code.addStatement("$L.$L($L())", "target", field.getSetterName(), field.getGeneratedMethod(MethodType.DESERIALIZE).name());
         }
 
         builder.addMethod(MethodSpec.methodBuilder("read")

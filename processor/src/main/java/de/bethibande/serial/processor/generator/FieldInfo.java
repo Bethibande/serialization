@@ -22,7 +22,7 @@ import java.util.Optional;
 public class FieldInfo implements HasAttributes {
 
     @Getter
-    private final TypeElement parent;
+    private final TypeElement clazz;
     @Getter
     private final VariableElement field;
     @Getter
@@ -31,6 +31,13 @@ public class FieldInfo implements HasAttributes {
     private final TypeMirror type;
 
     private AttributeMap attributes;
+
+    @Getter
+    @Setter
+    private FieldInfo child;
+    @Getter
+    @Setter
+    private FieldInfo parent;
 
     @Getter
     @Setter
@@ -52,8 +59,8 @@ public class FieldInfo implements HasAttributes {
 
     private Map<MethodType, MethodSpec> generatedMethods;
 
-    public FieldInfo(final TypeElement parent, final VariableElement field, final String fieldName, final TypeMirror type) {
-        this.parent = parent;
+    public FieldInfo(final TypeElement clazz, final VariableElement field, final String fieldName, final TypeMirror type) {
+        this.clazz = clazz;
         this.field = field;
         this.fieldName = fieldName;
         this.type = type;

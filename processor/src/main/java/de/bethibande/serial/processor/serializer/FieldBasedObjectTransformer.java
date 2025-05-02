@@ -12,39 +12,13 @@ import de.bethibande.serial.processor.generator.MethodType;
 import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public interface FieldBasedObjectTransformer {
-
-    default MethodSpec.Builder defaultWriteMethod(final FieldInfo field,
-                                                  final SerializationContext ctx) {
-        return defaultWriteMethod(field, field.getFieldName(), ctx);
-    }
-
-    default MethodSpec.Builder defaultWriteMethod(final FieldInfo field,
-                                                  final String methodName,
-                                                  final SerializationContext ctx) {
-        return MethodSpec.methodBuilder(methodName)
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(ParameterSpec.builder(field.getTypeName(), field.getFieldName())
-                        .addModifiers(Modifier.FINAL)
-                        .build())
-                .returns(ctx.serializerType());
-    }
-
-    default MethodSpec.Builder defaultReadMethod(final FieldInfo field,
-                                                  final SerializationContext ctx) {
-        return defaultReadMethod(field, field.getFieldName(), ctx);
-    }
-
-    default MethodSpec.Builder defaultReadMethod(final FieldInfo field,
-                                                 final String methodName,
-                                                 final SerializationContext ctx) {
-        return MethodSpec.methodBuilder(methodName)
-                .addModifiers(Modifier.PUBLIC)
-                .returns(field.getTypeName());
-    }
 
     /**
      * Converts the provided {@link AnnotatedConstruct} into a {@link TypeMirror}.
@@ -67,49 +41,89 @@ public interface FieldBasedObjectTransformer {
 
     boolean isApplicable(final FieldInfo field, final ElementSerializer serializer);
 
-    CodeBlock createSerializerCode(final FieldInfo field, final SerializationContext ctx);
-
-    default MethodSpec createSerializerMethod(final FieldInfo field, final SerializationContext ctx) {
-        return defaultWriteMethod(field, ctx)
-                .addCode(createSerializerCode(field, ctx))
-                .build();
+    default Optional<String> wrappedMethodNameSuffix() {
+        return Optional.empty();
     }
 
-    default List<MethodSpec> createSerializerMethods(final FieldInfo field, final SerializationContext ctx) {
-        return List.of(createSerializerMethod(field, ctx));
-    }
-
-    default void transformSerializer(final TypeSpec.Builder builder,
-                                     final Collection<FieldInfo> fields,
-                                     final SerializationContext ctx) {
-        for (final FieldInfo field : fields) {
-            final List<MethodSpec> methods = createSerializerMethods(field, ctx);
-
-            field.addGeneratedMethod(MethodType.WRITE, methods.getFirst());
-            builder.addMethods(methods);
+    default void forEach(final FieldInfo root,
+                         final Function<FieldInfo, FieldInfo> nextFunction,
+                         final Consumer<FieldInfo> consumer) {
+        FieldInfo current = root;
+        while (current != null) {
+            consumer.accept(current);
+            current = nextFunction.apply(current);
         }
     }
 
-    CodeBlock createDeserializerCode(final FieldInfo field, final SerializationContext ctx);
+    default <T> List<T> mapEach(final FieldInfo root,
+                         final Function<FieldInfo, FieldInfo> nextFunction,
+                         final Function<FieldInfo, T> consumer) {
+        final List<T> values = new ArrayList<>();
+        forEach(root, nextFunction, (current) -> values.add(consumer.apply(current)));
 
-    default MethodSpec createDeserializerMethod(final FieldInfo field, final SerializationContext ctx) {
-        return defaultReadMethod(field, ctx)
-                .addCode(createDeserializerCode(field, ctx))
+        return values;
+    }
+
+    default String methodName(final FieldInfo field) {
+        final StringBuilder builder = new StringBuilder(field.getFieldName());
+        if (field.getParent() != null) {
+            forEach(
+                    field.getParent(),
+                    FieldInfo::getParent,
+                    parent -> parent.getTransformer()
+                            .wrappedMethodNameSuffix()
+                            .ifPresent(builder::append)
+            );
+        }
+
+        return builder.toString();
+    }
+
+    CodeBlock createSerializationCode(final FieldInfo field,
+                                      final SerializationContext ctx);
+
+    CodeBlock createDeserializationCode(final FieldInfo field,
+                                        final SerializationContext ctx);
+
+    default MethodSpec createSerializationMethod(final FieldInfo field,
+                                                 final SerializationContext ctx) {
+        return MethodSpec.methodBuilder(methodName(field))
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ParameterSpec.builder(field.getTypeName(), "value")
+                        .addModifiers(Modifier.FINAL)
+                        .build())
+                .addCode(createSerializationCode(field, ctx))
+                .returns(ctx.serializerType())
                 .build();
     }
 
-    default List<MethodSpec> createDeserializerMethods(final FieldInfo field, final SerializationContext ctx) {
-        return List.of(createDeserializerMethod(field, ctx));
+    default MethodSpec createDeserializationMethod(final FieldInfo field,
+                                                   final SerializationContext ctx) {
+        return MethodSpec.methodBuilder(methodName(field))
+                .addModifiers(Modifier.PUBLIC)
+                .addCode(createDeserializationCode(field, ctx))
+                .returns(field.getTypeName())
+                .build();
     }
 
-    default void transformDeserializer(final TypeSpec.Builder builder,
-                                       final Collection<FieldInfo> fields,
-                                       final SerializationContext ctx) {
-        for (final FieldInfo field : fields) {
-            final List<MethodSpec> methods = createDeserializerMethods(field, ctx);
+    default void transformType(final TypeSpec.Builder builder,
+                               final FieldInfo field,
+                               final MethodType methodType,
+                               final SerializationContext ctx) {
+        final List<MethodSpec> methods = mapEach(
+                field,
+                FieldInfo::getChild,
+                child -> {
+                    final FieldBasedObjectTransformer transformer = child.getTransformer();
+                    final MethodSpec method = switch (methodType) {
+                        case SERIALIZE -> transformer.createSerializationMethod(child, ctx);
+                        case DESERIALIZE -> transformer.createDeserializationMethod(child, ctx);
+                    };
+                    child.addGeneratedMethod(methodType, method);
+                    return method;
+                }
+        );
 
-            field.addGeneratedMethod(MethodType.READ, methods.getFirst());
-            builder.addMethods(methods);
-        }
+        builder.addMethods(methods);
     }
 }

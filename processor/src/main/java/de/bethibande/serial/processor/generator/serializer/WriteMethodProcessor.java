@@ -17,7 +17,7 @@ public class WriteMethodProcessor implements GenerationPostProcessor {
     public void postProcess(final TypeSpec.Builder builder, final SerializationContext context) {
         final CodeBlock.Builder code = CodeBlock.builder();
         for (final FieldInfo field : context.fields()) {
-            code.addStatement("$L($L.$L())", field.getGeneratedMethod(MethodType.WRITE).name(), "value", field.getGetterName());
+            code.addStatement("$L($L.$L())", field.getGeneratedMethod(MethodType.SERIALIZE).name(), "value", field.getGetterName());
         }
 
         builder.addMethod(MethodSpec.methodBuilder("write")
