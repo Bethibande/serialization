@@ -4,10 +4,7 @@ import com.palantir.javapoet.ClassName;
 import com.palantir.javapoet.TypeName;
 
 import javax.lang.model.AnnotatedConstruct;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.RecordComponentElement;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -72,16 +69,24 @@ public class TypeHelper {
         return SerializationProcessor.TYPES.isAssignable(superType, to);
     }
 
-    public static boolean hasNotNullAnnotation(final TypeMirror type) {
-        return type.getAnnotationMirrors()
+    public static boolean hasNotNullAnnotation(final AnnotatedConstruct construct) {
+        return construct.getAnnotationMirrors()
                 .stream()
                 .map(it -> it.getAnnotationType().asElement().getSimpleName().toString())
                 .map(String::toLowerCase)
                 .anyMatch(NOT_NULL_ANNOTATIONS::contains);
     }
 
+    public static boolean isNullable(final AnnotatedConstruct construct) {
+        return !isNotNull(construct);
+    }
+
     public static boolean isNullable(final TypeMirror type) {
         return !isNotNull(type);
+    }
+
+    public static boolean isNotNull(final AnnotatedConstruct construct) {
+        return resolveType(construct).getKind().isPrimitive() || hasNotNullAnnotation(construct);
     }
 
     public static boolean isNotNull(final TypeMirror type) {
@@ -103,6 +108,7 @@ public class TypeHelper {
         if (construct instanceof TypeElement element) return element.asType();
         if (construct instanceof ExecutableElement executable) return executable.getReturnType();
         if (construct instanceof RecordComponentElement recordComponent) return recordComponent.asType();
+        if (construct instanceof VariableElement variableElement) return variableElement.asType();
         throw new IllegalArgumentException("Unknown construct type: " + construct.getClass().getName());
     }
 

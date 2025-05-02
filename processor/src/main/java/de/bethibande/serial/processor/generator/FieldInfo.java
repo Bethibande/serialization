@@ -7,6 +7,7 @@ import de.bethibande.serial.processor.attributes.AttributeKey;
 import de.bethibande.serial.processor.attributes.AttributeMap;
 import de.bethibande.serial.processor.attributes.HasAttributes;
 import de.bethibande.serial.processor.serializer.FieldBasedObjectTransformer;
+import lombok.*;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -16,72 +17,57 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Builder(toBuilder = true)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class FieldInfo implements HasAttributes {
 
+    @Getter
     private final TypeElement parent;
+    @Getter
     private final VariableElement field;
+    @Getter
     private final String fieldName;
+    @Getter
     private final TypeMirror type;
-    private final TypeElement typeElement;
 
-    private final AttributeMap attributes = new AttributeMap();
+    private AttributeMap attributes;
 
+    @Getter
+    @Setter
     private ExecutableElement getter;
+    @Getter
+    @Setter
     private ExecutableElement setter;
+    @Getter
+    @Setter
     private ExecutableElement fluentSetter;
 
-    private boolean nullable = false;
+    @Getter
+    @Setter
+    private boolean nullable;
 
+    @Getter
+    @Setter
     private FieldBasedObjectTransformer transformer;
-    private Map<MethodType, MethodSpec> generatedMethods = new HashMap<>();
+
+    private Map<MethodType, MethodSpec> generatedMethods;
 
     public FieldInfo(final TypeElement parent, final VariableElement field, final String fieldName, final TypeMirror type) {
         this.parent = parent;
         this.field = field;
         this.fieldName = fieldName;
         this.type = type;
-        this.typeElement = TypeHelper.asElement(type);
-    }
-
-
-    public TypeElement getParent() {
-        return parent;
-    }
-
-    public VariableElement getField() {
-        return field;
+        this.attributes = new AttributeMap();
+        this.nullable = false;
+        this.generatedMethods = new HashMap<>();
     }
 
     public TypeElement getTypeElement() {
-        return typeElement;
-    }
-
-    public boolean isNullable() {
-        return nullable;
-    }
-
-    public String getFieldName() {
-        return fieldName;
-    }
-
-    public TypeMirror getType() {
-        return type;
+        return TypeHelper.asElement(type);
     }
 
     public TypeName getTypeName() {
         return TypeName.get(type);
-    }
-
-    public ExecutableElement getGetter() {
-        return getter;
-    }
-
-    public ExecutableElement getSetter() {
-        return setter;
-    }
-
-    public ExecutableElement getFluentSetter() {
-        return fluentSetter;
     }
 
     public String getGetterName() {
@@ -108,32 +94,8 @@ public class FieldInfo implements HasAttributes {
         return "with" + TypeHelper.capitalizeName(fieldName);
     }
 
-    public FieldBasedObjectTransformer getTransformer() {
-        return transformer;
-    }
-
     public MethodSpec getGeneratedMethod(final MethodType type) {
         return generatedMethods.get(type);
-    }
-
-    public void setTransformer(final FieldBasedObjectTransformer transformer) {
-        this.transformer = transformer;
-    }
-
-    public void setNullable(final boolean nullable) {
-        this.nullable = nullable;
-    }
-
-    public void setGetter(final ExecutableElement getter) {
-        this.getter = getter;
-    }
-
-    public void setSetter(final ExecutableElement setter) {
-        this.setter = setter;
-    }
-
-    public void setFluentSetter(final ExecutableElement fluentSetter) {
-        this.fluentSetter = fluentSetter;
     }
 
     public void addGeneratedMethod(final MethodType type, final MethodSpec method) {
@@ -148,5 +110,10 @@ public class FieldInfo implements HasAttributes {
     @Override
     public <T> Optional<T> get(final AttributeKey<T> key) {
         return attributes.get(key);
+    }
+
+    @Override
+    public String toString() {
+        return type + " " + fieldName;
     }
 }

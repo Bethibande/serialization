@@ -13,6 +13,7 @@ import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
 import java.util.Collection;
+import java.util.List;
 
 public interface FieldBasedObjectTransformer {
 
@@ -74,14 +75,18 @@ public interface FieldBasedObjectTransformer {
                 .build();
     }
 
+    default List<MethodSpec> createSerializerMethods(final FieldInfo field, final SerializationContext ctx) {
+        return List.of(createSerializerMethod(field, ctx));
+    }
+
     default void transformSerializer(final TypeSpec.Builder builder,
                                      final Collection<FieldInfo> fields,
                                      final SerializationContext ctx) {
         for (final FieldInfo field : fields) {
-            final MethodSpec method = createSerializerMethod(field, ctx);
+            final List<MethodSpec> methods = createSerializerMethods(field, ctx);
 
-            field.addGeneratedMethod(MethodType.WRITE, method);
-            builder.addMethod(method);
+            field.addGeneratedMethod(MethodType.WRITE, methods.getFirst());
+            builder.addMethods(methods);
         }
     }
 
@@ -93,14 +98,18 @@ public interface FieldBasedObjectTransformer {
                 .build();
     }
 
+    default List<MethodSpec> createDeserializerMethods(final FieldInfo field, final SerializationContext ctx) {
+        return List.of(createDeserializerMethod(field, ctx));
+    }
+
     default void transformDeserializer(final TypeSpec.Builder builder,
                                        final Collection<FieldInfo> fields,
                                        final SerializationContext ctx) {
         for (final FieldInfo field : fields) {
-            final MethodSpec method = createDeserializerMethod(field, ctx);
+            final List<MethodSpec> methods = createDeserializerMethods(field, ctx);
 
-            field.addGeneratedMethod(MethodType.READ, method);
-            builder.addMethod(method);
+            field.addGeneratedMethod(MethodType.READ, methods.getFirst());
+            builder.addMethods(methods);
         }
     }
 }
