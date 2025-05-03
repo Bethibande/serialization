@@ -97,6 +97,11 @@ public interface FieldBasedObjectTransformer {
     CodeBlock createDeserializationCode(final FieldInfo field,
                                         final SerializationContext ctx);
 
+    default void applySerializerTransformation(final TypeSpec.Builder builder,
+                                               final FieldInfo field,
+                                               final SerializationContext ctx) {
+    }
+
     default MethodSpec createSerializationMethod(final FieldInfo field,
                                                  final SerializationContext ctx) {
         return MethodSpec.methodBuilder(methodName(field))
@@ -107,6 +112,11 @@ public interface FieldBasedObjectTransformer {
                 .addCode(createSerializationCode(field, ctx))
                 .returns(ctx.serializerType())
                 .build();
+    }
+
+    default void applyDeserializerTransformation(final TypeSpec.Builder builder,
+                                                 final FieldInfo field,
+                                                 final SerializationContext ctx) {
     }
 
     default MethodSpec createDeserializationMethod(final FieldInfo field,
@@ -131,6 +141,12 @@ public interface FieldBasedObjectTransformer {
                         case SERIALIZE -> transformer.createSerializationMethod(child, ctx);
                         case DESERIALIZE -> transformer.createDeserializationMethod(child, ctx);
                     };
+
+                    switch (methodType) {
+                        case SERIALIZE -> transformer.applySerializerTransformation(builder, child, ctx);
+                        case DESERIALIZE -> transformer.applyDeserializerTransformation(builder, child, ctx);
+                    }
+
                     child.addGeneratedMethod(methodType, method);
                     return method;
                 }
