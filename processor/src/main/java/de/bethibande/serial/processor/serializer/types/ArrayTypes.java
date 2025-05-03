@@ -45,7 +45,7 @@ public class ArrayTypes extends EmbeddedTypeTransformer {
     public CodeBlock createSerializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
                 .addStatement("$L.writeInt($L.length)", "writer", "value")
-                .beginControlFlow("for ($T item : $L)", field.getChild().getType(), "value")
+                .beginControlFlow("for ($T item : $L)", field.getFirstChild().getType(), "value")
                 .addStatement("$L(item)", embeddedMethodName(field))
                 .endControlFlow()
                 .addStatement("return this")
@@ -55,7 +55,7 @@ public class ArrayTypes extends EmbeddedTypeTransformer {
     @Override
     public CodeBlock createDeserializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
-                .addStatement("final $T $L = new $T[$L.readInt()]", field.getType(), "value", field.getChild().getType(), "reader")
+                .addStatement("final $T $L = new $T[$L.readInt()]", field.getType(), "value", field.getFirstChild().getType(), "reader")
                 .beginControlFlow("for (int i = 0; i < $L.length; i++)", "value")
                 .addStatement("$L[i] = $L()", "value", embeddedMethodName(field))
                 .endControlFlow()

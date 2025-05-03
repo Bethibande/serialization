@@ -12,9 +12,7 @@ import de.bethibande.serial.processor.generator.MethodType;
 import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -45,21 +43,35 @@ public interface FieldBasedObjectTransformer {
         return Optional.empty();
     }
 
+    default void forEachSingleChild(final FieldInfo root,
+                                    final Function<FieldInfo, FieldInfo> childFunction,
+                                    final Consumer<FieldInfo> consumer) {
+        forEach(root, field -> {
+            final FieldInfo child = childFunction.apply(field);
+            if (child == null) return Collections.emptyList();
+            return Collections.singletonList(child);
+        }, consumer);
+    }
+
     default void forEach(final FieldInfo root,
-                         final Function<FieldInfo, FieldInfo> nextFunction,
+                         final Function<FieldInfo, Collection<FieldInfo>> childFunction,
                          final Consumer<FieldInfo> consumer) {
-        FieldInfo current = root;
-        while (current != null) {
+        final Stack<FieldInfo> stack = new Stack<>();
+        stack.push(root);
+        while (!stack.isEmpty()) {
+            final FieldInfo current = stack.pop();
+            if (current == null) continue;
+
             consumer.accept(current);
-            current = nextFunction.apply(current);
+            childFunction.apply(current).forEach(stack::push);
         }
     }
 
     default <T> List<T> mapEach(final FieldInfo root,
-                         final Function<FieldInfo, FieldInfo> nextFunction,
-                         final Function<FieldInfo, T> consumer) {
+                                final Function<FieldInfo, Collection<FieldInfo>> childFunction,
+                                final Function<FieldInfo, T> consumer) {
         final List<T> values = new ArrayList<>();
-        forEach(root, nextFunction, (current) -> values.add(consumer.apply(current)));
+        forEach(root, childFunction, (current) -> values.add(consumer.apply(current)));
 
         return values;
     }
@@ -67,7 +79,7 @@ public interface FieldBasedObjectTransformer {
     default String methodName(final FieldInfo field) {
         final StringBuilder builder = new StringBuilder(field.getFieldName());
         if (field.getParent() != null) {
-            forEach(
+            forEachSingleChild(
                     field.getParent(),
                     FieldInfo::getParent,
                     parent -> parent.getTransformer()
@@ -112,7 +124,7 @@ public interface FieldBasedObjectTransformer {
                                final SerializationContext ctx) {
         final List<MethodSpec> methods = mapEach(
                 field,
-                FieldInfo::getChild,
+                FieldInfo::getChildren,
                 child -> {
                     final FieldBasedObjectTransformer transformer = child.getTransformer();
                     final MethodSpec method = switch (methodType) {

@@ -13,9 +13,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -33,8 +31,7 @@ public class FieldInfo implements HasAttributes {
     private AttributeMap attributes;
 
     @Getter
-    @Setter
-    private FieldInfo child;
+    private List<FieldInfo> children;
     @Getter
     @Setter
     private FieldInfo parent;
@@ -67,6 +64,15 @@ public class FieldInfo implements HasAttributes {
         this.attributes = new AttributeMap();
         this.nullable = false;
         this.generatedMethods = new HashMap<>();
+        this.children = new ArrayList<>();
+    }
+
+    public FieldInfo getFirstChild() {
+        return children.getFirst();
+    }
+
+    public void addChild(final FieldInfo child) {
+        children.add(child);
     }
 
     public TypeElement getTypeElement() {

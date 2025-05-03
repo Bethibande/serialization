@@ -2,6 +2,7 @@ package de.bethibande.serial.processor.serializer;
 
 import de.bethibande.serial.processor.generator.FieldInfo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public abstract class EmbeddedTypeTransformer implements FieldBasedObjectTransformer {
@@ -17,16 +18,17 @@ public abstract class EmbeddedTypeTransformer implements FieldBasedObjectTransfo
         final FieldInfo child = createChildType(field, serializer)
                 .toBuilder()
                 .generatedMethods(new HashMap<>()) // Avoid sharing the same map instance with the parent
+                .children(new ArrayList<>()) // Avoid sharing the same list instance with the parent
                 .build();
         child.setTransformer(serializer.getFieldTransformer(child).orElseThrow());
         child.setParent(field);
-        field.setChild(child);
+        field.addChild(child);
 
         return true;
     }
 
     public String embeddedMethodName(final FieldInfo field) {
-        return methodName(field.getChild());
+        return methodName(field.getChildren().getFirst());
     }
 
 }
