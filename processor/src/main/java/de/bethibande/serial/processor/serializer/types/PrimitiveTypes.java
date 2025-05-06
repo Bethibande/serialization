@@ -25,7 +25,7 @@ public class PrimitiveTypes implements FieldBasedObjectTransformer {
     @Override
     public CodeBlock createSerializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
-                .addStatement(Operations.writeOperation(toTypeKind(field)), "writer", "value")
+                .addStatement(Operations.writeOperation(toTypeKind(field)), FIELD_WRITER, FIELD_VALUE)
                 .addStatement("return this")
                 .build();
     }
@@ -33,7 +33,7 @@ public class PrimitiveTypes implements FieldBasedObjectTransformer {
     @Override
     public CodeBlock createDeserializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
-                .addStatement(Operations.readOperation(toTypeKind(field)), "reader")
+                .addStatement(Operations.readOperation(toTypeKind(field)), FIELD_READER)
                 .build();
     }
 }

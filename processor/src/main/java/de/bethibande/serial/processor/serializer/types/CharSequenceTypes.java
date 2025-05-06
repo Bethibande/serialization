@@ -20,7 +20,7 @@ public class CharSequenceTypes implements FieldBasedObjectTransformer {
     @Override
     public CodeBlock createSerializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
-                .addStatement(Operations.WRITE_STRING, "writer", "value")
+                .addStatement(Operations.WRITE_STRING, FIELD_WRITER, FIELD_VALUE)
                 .addStatement("return this")
                 .build();
     }
@@ -28,7 +28,7 @@ public class CharSequenceTypes implements FieldBasedObjectTransformer {
     @Override
     public CodeBlock createDeserializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
-                .addStatement(Operations.READ_STRING, "reader")
+                .addStatement(Operations.READ_STRING, FIELD_READER)
                 .build();
     }
 }

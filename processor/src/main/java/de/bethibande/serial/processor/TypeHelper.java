@@ -38,7 +38,7 @@ public class TypeHelper {
     }
 
     public static PrimitiveType unbox(final TypeMirror type) {
-        return SerializationProcessor.TYPES.unboxedType(type);
+        return SerializationProcessor.TYPES.get().unboxedType(type);
     }
 
     public static String rawType(final TypeMirror type) {
@@ -50,11 +50,11 @@ public class TypeHelper {
     }
 
     public static TypeElement asElement(final TypeMirror type) {
-        return SerializationProcessor.ELEMENTS.getTypeElement(rawType(type));
+        return SerializationProcessor.ELEMENTS.get().getTypeElement(rawType(type));
     }
 
     public static TypeElement asElement(final Class<?> clazz) {
-        return SerializationProcessor.ELEMENTS.getTypeElement(clazz.getCanonicalName());
+        return SerializationProcessor.ELEMENTS.get().getTypeElement(clazz.getCanonicalName());
     }
 
     public static TypeMirror asType(final Class<?> clazz) {
@@ -62,11 +62,11 @@ public class TypeHelper {
     }
 
     public static boolean isCharSequence(final TypeMirror type) {
-        return SerializationProcessor.TYPES.isSubtype(type, asType(CharSequence.class));
+        return SerializationProcessor.TYPES.get().isSubtype(type, asType(CharSequence.class));
     }
 
     public static boolean isAssignable(final TypeMirror superType, final TypeMirror to) {
-        return SerializationProcessor.TYPES.isAssignable(superType, to);
+        return SerializationProcessor.TYPES.get().isAssignable(superType, to);
     }
 
     public static boolean hasNotNullAnnotation(final AnnotatedConstruct construct) {
@@ -145,5 +145,7 @@ public class TypeHelper {
     public static boolean isGetter(final ExecutableElement element) {
         return element.getParameters().isEmpty() && element.getReturnType().getKind() != TypeKind.VOID;
     }
+
+    private TypeHelper() {}
 
 }

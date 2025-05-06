@@ -6,10 +6,10 @@ public abstract class AbstractNettySerial {
 
     protected ByteBuf buffer;
 
-    public AbstractNettySerial() {
+    protected AbstractNettySerial() {
     }
 
-    public AbstractNettySerial(final ByteBuf buffer) {
+    protected AbstractNettySerial(final ByteBuf buffer) {
         this.buffer = buffer;
     }
 

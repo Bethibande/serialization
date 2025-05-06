@@ -20,13 +20,14 @@ import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 @AutoService(Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_23)
 public class SerializationProcessor extends AbstractProcessor {
 
-    public static Types TYPES;
-    public static Elements ELEMENTS;
+    public static final AtomicReference<Types> TYPES = new AtomicReference<>();
+    public static final AtomicReference<Elements> ELEMENTS = new AtomicReference<>();
 
     private final List<Generator> generators = load(Generator.class);
     private final ElementSerializer serializer;
@@ -47,8 +48,8 @@ public class SerializationProcessor extends AbstractProcessor {
     public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
         if (roundEnv.processingOver()) return true;
 
-        TYPES = processingEnv.getTypeUtils();
-        ELEMENTS = processingEnv.getElementUtils();
+        TYPES.set(processingEnv.getTypeUtils());
+        ELEMENTS.set(processingEnv.getElementUtils());
 
         final List<TypeElement> types = roundEnv.getElementsAnnotatedWith(SerializableType.class)
                 .stream()

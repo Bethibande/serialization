@@ -22,7 +22,7 @@ public class EnumTypes implements FieldBasedObjectTransformer {
     @Override
     public CodeBlock createSerializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
-                .addStatement("$L.writeInt($L.ordinal())", "writer", "value")
+                .addStatement("$L.writeInt($L.ordinal())", FIELD_WRITER, FIELD_VALUE)
                 .addStatement("return this")
                 .build();
     }
@@ -30,7 +30,7 @@ public class EnumTypes implements FieldBasedObjectTransformer {
     @Override
     public CodeBlock createDeserializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
-                .addStatement("return $T.values()[$L.readInt()]", field.getType(), "reader")
+                .addStatement("return $T.values()[$L.readInt()]", field.getType(), FIELD_READER)
                 .build();
     }
 }

@@ -34,11 +34,11 @@ public class NullableTypes extends EmbeddedTypeTransformer {
     public CodeBlock createSerializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
                 .beginControlFlow("if (value != null)")
-                .addStatement("$L.writeBoolean(true)", "writer")
+                .addStatement("$L.writeBoolean(true)", FIELD_WRITER)
                 .addStatement("$L(value)", embeddedMethodName(field))
                 .addStatement("return this")
                 .endControlFlow()
-                .addStatement("$L.writeBoolean(false)", "writer")
+                .addStatement("$L.writeBoolean(false)", FIELD_WRITER)
                 .addStatement("return this")
                 .build();
     }
@@ -46,7 +46,7 @@ public class NullableTypes extends EmbeddedTypeTransformer {
     @Override
     public CodeBlock createDeserializationCode(final FieldInfo field, final SerializationContext ctx) {
         return CodeBlock.builder()
-                .beginControlFlow("if ($L.readBoolean())", "reader")
+                .beginControlFlow("if ($L.readBoolean())", FIELD_READER)
                 .addStatement("return $L()", embeddedMethodName(field))
                 .endControlFlow()
                 .addStatement("return null")

@@ -10,13 +10,27 @@ import de.bethibande.serial.processor.generator.FieldInfo;
 import de.bethibande.serial.processor.generator.MethodType;
 
 import javax.lang.model.AnnotatedConstruct;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.RecordComponentElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 public interface FieldBasedObjectTransformer {
+
+    String FIELD_WRITER = "writer";
+    String FIELD_READER = "reader";
+    String FIELD_VALUE = "value";
 
     /**
      * Converts the provided {@link AnnotatedConstruct} into a {@link TypeMirror}.
@@ -44,7 +58,7 @@ public interface FieldBasedObjectTransformer {
     }
 
     default void forEachSingleChild(final FieldInfo root,
-                                    final Function<FieldInfo, FieldInfo> childFunction,
+                                    final UnaryOperator<FieldInfo> childFunction,
                                     final Consumer<FieldInfo> consumer) {
         forEach(root, field -> {
             final FieldInfo child = childFunction.apply(field);
@@ -107,8 +121,8 @@ public interface FieldBasedObjectTransformer {
         return MethodSpec.methodBuilder(methodName(field))
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ParameterSpec.builder(field.getTypeName(), "value")
-                        .addModifiers(Modifier.FINAL)
-                        .build())
+                                      .addModifiers(Modifier.FINAL)
+                                      .build())
                 .addCode(createSerializationCode(field, ctx))
                 .returns(ctx.serializerType())
                 .build();
