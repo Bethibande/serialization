@@ -2,6 +2,7 @@ package de.bethibande.serial.example;
 
 import de.bethibande.serial.Reader;
 import de.bethibande.serial.Writer;
+import de.bethibande.serial.allocation.ClearingCollectionAllocator;
 import de.bethibande.serial.netty.NettyReader;
 import de.bethibande.serial.netty.NettyWriter;
 import io.netty.buffer.ByteBuf;
@@ -22,7 +23,8 @@ public class Main {
         test.setStringList(List.of("a", "b", "c"));
         final TestDTOSerializer serializer = new TestDTOSerializer();
         final TestDTODeserializer deserializer = new TestDTODeserializer();
-        deserializer.stringListNotNullAllocator(ArrayList::new);
+        // Re-use the same ArrayList instance for all deserializer.read calls.
+        deserializer.stringListNotNullAllocator(new ClearingCollectionAllocator<>(new ArrayList<>()));
 
         serializer.bind(writer)
                 .write(test.withSomeNumber(234))
