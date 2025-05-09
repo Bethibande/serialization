@@ -1,10 +1,7 @@
 package de.bethibande.serial.processor.generator.deserializer;
 
 import com.google.auto.service.AutoService;
-import com.palantir.javapoet.ClassName;
-import com.palantir.javapoet.ParameterizedTypeName;
-import com.palantir.javapoet.TypeName;
-import com.palantir.javapoet.TypeSpec;
+import com.palantir.javapoet.*;
 import de.bethibande.serial.impl.AbstractDeserializer;
 import de.bethibande.serial.processor.Generator;
 import de.bethibande.serial.processor.context.SerializationContext;
@@ -36,6 +33,9 @@ public class DeserializerGenerator extends AbstractGenerator {
         final TypeName superType = ParameterizedTypeName.get(ABSTRACT_DESERIALIZER, context.rawType());
 
         final TypeSpec.Builder builder = TypeSpec.classBuilder(context.deserializerType())
+                .addInitializerBlock(CodeBlock.builder()
+                        .addStatement("super.allocator = () -> new $T()", context.type())
+                        .build())
                 .superclass(superType);
 
         for (final FieldInfo field : context.fields()) {

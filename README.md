@@ -46,7 +46,6 @@ For more examples see [here](/example/src/main/java/de/bethibande/serial/example
 ### Type support
 
 - ✅ Fully supported
-- 💡Coming soon
 - ❌ Not yet supported
 
 | Type                     | Support |
@@ -57,8 +56,8 @@ For more examples see [here](/example/src/main/java/de/bethibande/serial/example
 | Any enum type            | ✅       |
 | Arrays                   | ✅       |
 | Collections              | ✅       |
-| Maps                     | 💡      |
-| Other serializable types | ❌       |
+| Other serializable types | ✅       |
+| Maps                     | ❌       |
 | Java time types          | ❌       |
 
 Please note that not null annotations are supported. Marking nullable fields as not nullable will omit null-checks,
