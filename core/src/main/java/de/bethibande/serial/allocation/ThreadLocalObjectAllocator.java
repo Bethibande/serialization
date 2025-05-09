@@ -19,4 +19,8 @@ public class ThreadLocalObjectAllocator<T> implements ObjectAllocator<T> {
         return holder.get();
     }
 
+    public void deallocate() {
+        holder.remove();
+    }
+
 }
