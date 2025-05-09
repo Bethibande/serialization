@@ -13,6 +13,7 @@ import de.bethibande.serial.processor.generator.FieldInfo;
 import de.bethibande.serial.processor.generator.MethodType;
 import de.bethibande.serial.processor.serializer.FieldBasedObjectTransformer;
 
+import javax.lang.model.element.Modifier;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,6 +37,7 @@ public class SerializerGenerator extends AbstractGenerator {
         final TypeName superType = ParameterizedTypeName.get(ABSTRACT_SERIALIZER, context.rawType());
 
         final TypeSpec.Builder builder = TypeSpec.classBuilder(context.serializerType())
+                .addModifiers(Modifier.PUBLIC)
                 .superclass(superType);
 
         for (final FieldInfo field : context.fields()) {

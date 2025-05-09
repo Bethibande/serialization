@@ -16,12 +16,17 @@ dependencies {
     implementation("com.palantir.javapoet:javapoet:0.7.0")
 
     compileOnly("org.projectlombok:lombok:1.18.38")
+    testCompileOnly("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
 
     implementation("com.google.auto.service:auto-service:1.1.1")
     annotationProcessor("com.google.auto.service:auto-service:1.1.1")
 
+    testCompileOnly("org.jetbrains:annotations:26.0.2")
+
     implementation(projects.core)
+    testAnnotationProcessor(projects.processor)
 }
 
 tasks.test {
