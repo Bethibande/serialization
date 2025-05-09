@@ -6,6 +6,9 @@ import lombok.Setter;
 import lombok.ToString;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+import java.util.List;
+
 @Getter
 @Setter
 @ToString
@@ -19,8 +22,9 @@ public class TestDTO {
     @SuppressWarnings("boxedtypes")
     private Integer someInteger;
     private MyEnum someEnum;
-    @Getter
     private @NotNull String[] someStringArray;
+
+    private List<String> stringList;
 
     // We need to prevent the default lombok setter here, since lombok handles annotations incorrectly adding a null-check that shouldn't be there.
     public void setSomeStringArray(final String[] someStringArray) {

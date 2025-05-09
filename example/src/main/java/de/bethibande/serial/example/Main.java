@@ -7,17 +7,22 @@ import de.bethibande.serial.netty.NettyWriter;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Main {
 
     public static void main(String[] args) {
-        final ByteBuf buffer = ByteBufAllocator.DEFAULT.buffer(12);
+        final ByteBuf buffer = ByteBufAllocator.DEFAULT.buffer(32);
         final Writer writer = new NettyWriter(buffer);
         final Reader reader = new NettyReader(buffer);
 
         final TestDTO test = new TestDTO();
         test.setSomeString("abc");
+        test.setStringList(List.of("a", "b", "c"));
         final TestDTOSerializer serializer = new TestDTOSerializer();
         final TestDTODeserializer deserializer = new TestDTODeserializer();
+        deserializer.stringListNotNullAllocator(ArrayList::new);
 
         serializer.bind(writer)
                 .write(test.withSomeNumber(234))

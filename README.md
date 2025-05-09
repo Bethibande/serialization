@@ -56,7 +56,7 @@ For more examples see [here](/example/src/main/java/de/bethibande/serial/example
 | String / CharSequence    | ✅       |
 | Any enum type            | ✅       |
 | Arrays                   | ✅       |
-| Collections              | 💡      |
+| Collections              | ✅       |
 | Maps                     | 💡      |
 | Other serializable types | ❌       |
 | Java time types          | ❌       |

@@ -61,6 +61,14 @@ public class TypeHelper {
         return asElement(clazz).asType();
     }
 
+    public static TypeMirror erasure(final TypeMirror type) {
+        return SerializationProcessor.TYPES.get().erasure(type);
+    }
+
+    public static boolean is(final TypeMirror a, final TypeMirror b) {
+        return SerializationProcessor.TYPES.get().isSameType(a, b);
+    }
+
     public static boolean isCharSequence(final TypeMirror type) {
         return SerializationProcessor.TYPES.get().isSubtype(type, asType(CharSequence.class));
     }
