@@ -2,9 +2,6 @@ plugins {
     id("java")
 }
 
-group = "de.bethibande"
-version = "unspecified"
-
 repositories {
     mavenCentral()
 }
