@@ -75,8 +75,10 @@ publishing {
             name = "Maven-Releases"
             url = uri("https://pckg.bethibande.com/repository/maven-snapshots/")
             credentials {
-                username = providers.gradleProperty("mavenUsername").get()
-                password = providers.gradleProperty("mavenPassword").get()
+                if (providers.gradleProperty("mavenUsername").isPresent) {
+                    username = providers.gradleProperty("mavenUsername").get()
+                    password = providers.gradleProperty("mavenPassword").get()
+                }
             }
         }
     }
