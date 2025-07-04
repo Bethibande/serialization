@@ -119,7 +119,7 @@ public interface FieldBasedObjectTransformer {
     default MethodSpec createSerializationMethod(final FieldInfo field,
                                                  final SerializationContext ctx) {
         return MethodSpec.methodBuilder(methodName(field))
-                .addModifiers(Modifier.PUBLIC)
+                .addModifiers(field.getParent() == null ? Modifier.PUBLIC : Modifier.PROTECTED)
                 .addParameter(ParameterSpec.builder(field.getTypeName(), "value")
                                       .addModifiers(Modifier.FINAL)
                                       .build())
@@ -136,7 +136,7 @@ public interface FieldBasedObjectTransformer {
     default MethodSpec createDeserializationMethod(final FieldInfo field,
                                                    final SerializationContext ctx) {
         return MethodSpec.methodBuilder(methodName(field))
-                .addModifiers(Modifier.PUBLIC)
+                .addModifiers(field.getParent() == null ? Modifier.PUBLIC : Modifier.PROTECTED)
                 .addCode(createDeserializationCode(field, ctx))
                 .returns(field.getTypeName())
                 .build();
